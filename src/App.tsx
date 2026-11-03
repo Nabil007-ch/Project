@@ -13,6 +13,7 @@ import {
   Settings2,
   X,
 } from 'lucide-react'
+import { Analytics } from '@vercel/analytics/react'
 import { useDataSourceStatus } from './api/queries'
 import { Button, LoadingState } from './components'
 import { ThemeControl } from './components/ThemeProvider'
@@ -165,6 +166,7 @@ export function App() {
   }
   return (
     <div className="app-shell">
+      <Analytics />
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
