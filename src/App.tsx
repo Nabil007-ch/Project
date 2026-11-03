@@ -1,59 +1,281 @@
-import { useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
-import { ArrowDownToLine, ArrowRight, BarChart3, Boxes, ChevronRight, CircleHelp, ClipboardList, Database, LayoutDashboard, Menu, PackageSearch, PanelLeftClose, Settings2, Sparkles, X } from 'lucide-react'
+import {
+  ArrowRight,
+  BarChart3,
+  Boxes,
+  ChevronRight,
+  ClipboardList,
+  Database,
+  LayoutDashboard,
+  Menu,
+  PackageSearch,
+  Settings2,
+  X,
+} from 'lucide-react'
+import { useDataSourceStatus } from './api/queries'
+import { Button, LoadingState } from './components'
 import { ThemeControl } from './components/ThemeProvider'
 
+// Keep the shell fast to load; chart-heavy screens are loaded only when visited.
+const Dashboard = lazy(() =>
+  import('./features/dashboard/Dashboard').then((module) => ({ default: module.Dashboard })),
+)
+const Recommendations = lazy(() =>
+  import('./features/recommendations/Recommendations').then((module) => ({
+    default: module.Recommendations,
+  })),
+)
+const ItemDetail = lazy(() =>
+  import('./features/item-detail/ItemDetail').then((module) => ({ default: module.ItemDetail })),
+)
+const Evaluation = lazy(() =>
+  import('./features/evaluation/Evaluation').then((module) => ({ default: module.Evaluation })),
+)
+const Settings = lazy(() =>
+  import('./features/settings/Settings').then((module) => ({ default: module.Settings })),
+)
+const InterfacePreview = lazy(() =>
+  import('./features/interface-preview/InterfacePreview').then((module) => ({
+    default: module.InterfacePreview,
+  })),
+)
 const navigation = [
   { to: '/', label: 'Overview', icon: LayoutDashboard },
   { to: '/recommendations', label: 'Recommendations', icon: ClipboardList },
   { to: '/evaluation', label: 'Evaluation', icon: BarChart3 },
   { to: '/settings', label: 'Settings & data', icon: Settings2 },
 ]
-const pages: Record<string, { title: string; eyebrow: string; description: string; stage: string }> = {
-  '/': { title: 'A clearer view of what’s next.', eyebrow: 'YOUR PURCHASING WORKSPACE', description: 'Make confident buying decisions, with the context behind every order.', stage: 'Dashboard arrives in stage 4' },
-  '/recommendations': { title: 'Every order, with a reason.', eyebrow: 'RECOMMENDATIONS', description: 'Find what needs attention, compare suggested quantities, and plan your next order.', stage: 'Recommendations arrive in stage 4' },
-  '/evaluation': { title: 'See how the approach compares.', eyebrow: 'EVALUATION', description: 'Compare purchasing outcomes and understand the trade-offs in your inventory.', stage: 'Evaluation arrives in stage 6' },
-  '/settings': { title: 'Your data. A clear starting point.', eyebrow: 'SETTINGS & DATA SOURCE', description: 'Manage your workspace appearance and see how data will connect to OpsLens.', stage: 'Data-source controls arrive in stage 6' },
+function SourceStatus() {
+  const source = useDataSourceStatus()
+  if (source.isPending)
+    return (
+      <span role="status" className="source-status">
+        Checking sample source…
+      </span>
+    )
+  if (source.isError)
+    return (
+      <div role="alert" className="source-status">
+        Source unavailable
+        <Button variant="ghost" onClick={() => void source.refetch()}>
+          Retry
+        </Button>
+      </div>
+    )
+  return (
+    <div className="source-status">
+      <span className="status-dot" />
+      <span>{source.data?.label ?? 'No source selected'}</span>
+      <span className="source-divider" />
+      <span className="source-caption">No live connection</span>
+    </div>
+  )
 }
-
-function WorkspacePage() {
-  const { pathname } = useLocation()
-  const page = pages[pathname]
-  if (!page) return <section className="empty-card"><PackageSearch size={32} /><h1>Page not found</h1><p>This page isn’t part of your workspace.</p><Link className="button" to="/">Back to overview <ArrowRight size={16} /></Link></section>
-  return <>
-    <div className="page-heading"><div><div className="eyebrow">{page.eyebrow}</div><h1>{page.title}</h1><p>{page.description}</p></div><span className="group-label"><Boxes size={15} /> Beverages</span></div>
-    <section className="welcome-panel" aria-labelledby="welcome-title">
-      <div className="welcome-copy"><span className="section-tag"><Sparkles size={14} /> A LITTLE CLARITY GOES A LONG WAY</span><h2 id="welcome-title">The right stock.<br />At the right time.</h2><p>One place to understand demand, spot inventory risks, and decide what to order next.</p><div className="progress-caption"><span className="small-dot" /> Data foundation ready · Stage 2 of 7</div></div>
-      <div className="flow-diagram" aria-label="OpsLens workflow: inventory data leads to demand insight and a clear buying decision"><div className="flow-node"><Database size={20} /><span>Your inventory<small>A shared starting point</small></span></div><div className="flow-line" /><div className="flow-node highlighted"><Sparkles size={20} /><span>A clearer picture<small>Demand, stock, and timing</small></span></div><div className="flow-line" /><div className="flow-node"><ClipboardList size={20} /><span>Your next move<small>A recommendation you can explain</small></span><ArrowRight size={17} /></div></div>
+function NotFound() {
+  return (
+    <section className="empty-card">
+      <PackageSearch size={32} />
+      <h1>Page not found</h1>
+      <p>This page isn’t part of your workspace.</p>
+      <Link className="button" to="/">
+        Back to overview <ArrowRight size={16} />
+      </Link>
     </section>
-    <div className="section-heading"><div><h2>A workspace built around your decisions</h2><p>From inventory questions to a confident purchasing plan.</p></div><span className="muted-label">ONE PRODUCT GROUP TO START</span></div>
-    <div className="destination-grid">{[
-      { icon: PackageSearch, number: '01', title: 'Know what needs attention', text: 'A focused overview of stock-out risks, excess stock, and your most urgent items.', to: '/', label: 'Overview', stage: 'Stage 4' },
-      { icon: ClipboardList, number: '02', title: 'Understand what to order', text: 'Suggested quantities with a plain-language explanation of the numbers behind them.', to: '/recommendations', label: 'Recommendations', stage: 'Stages 4–5' },
-      { icon: BarChart3, number: '03', title: 'See the bigger picture', text: 'Compare service and inventory outcomes before putting the approach into practice.', to: '/evaluation', label: 'Evaluation', stage: 'Stage 6' },
-    ].map(card => <article className="destination-card" key={card.number}><div className="card-top"><span className="icon-tile"><card.icon size={21} /></span><span className="card-number">{card.number}</span></div><h3>{card.title}</h3><p>{card.text}</p><div className="card-bottom"><Link to={card.to}>{card.label}<ArrowRight size={15} /></Link><span>{card.stage}</span></div></article>)}</div>
-    <section className="foundation-note" aria-label="Current build status"><div className="note-icon"><CircleHelp size={20} /></div><div><h3>{page.stage}</h3><p>The typed sample API now contains 60 beverage items. Charts and purchasing actions will connect to it in the next stages.</p></div></section>
-    {pathname === '/settings' && <section className="settings-panel"><h2>Workspace appearance</h2><p>Follow your device’s theme or choose the look you prefer.</p><ThemeControl /></section>}
-  </>
+  )
 }
 
 export function App() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [mobile, setMobile] = useState(
+    () => window.matchMedia?.('(max-width: 700px)').matches ?? false,
+  )
+  const sidebar = useRef<HTMLElement>(null)
+  const menuButton = useRef<HTMLButtonElement>(null)
+  const closeButton = useRef<HTMLButtonElement>(null)
+  const main = useRef<HTMLElement>(null)
+  const restoreMenuFocus = useRef(false)
   const { pathname } = useLocation()
-  const currentLabel = navigation.find(item => item.to === pathname)?.label ?? 'Page not found'
-  return <div className="app-shell"><a className="skip-link" href="#main-content">Skip to content</a>
-    {menuOpen && <button className="sidebar-backdrop" aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
-    <aside className={`sidebar ${menuOpen ? 'is-open' : ''}`} aria-label="Workspace sidebar">
-      <Link to="/" className="brand" onClick={() => setMenuOpen(false)}><span className="brand-mark"><Boxes size={23} /></span>OpsLens<span className="brand-period">.</span></Link>
-      <button className="mobile-close icon-button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}><X size={20} /></button>
-      <div className="workspace-switch"><span className="workspace-avatar">ND</span><div>Northstar Distribution<small>Purchasing workspace</small></div></div>
-      <div className="nav-heading">WORKSPACE</div>
-      <nav aria-label="Main navigation">{navigation.map(item => <NavLink end={item.to === '/'} to={item.to} key={item.to} onClick={() => setMenuOpen(false)}><item.icon size={18} /><span>{item.label}</span><ChevronRight className="nav-chevron" size={14} /></NavLink>)}</nav>
-      <div className="sidebar-bottom"><div className="sample-note"><span className="sample-note-icon"><Database size={18} /></span><h3>A safe place to explore</h3><p>This workspace uses sample data. Your live inventory is never affected.</p><span className="sample-pill">Sample data</span></div><ThemeControl /><div className="profile"><span className="profile-avatar">BY</span><div>Buyer workspace<small>OpsLens · Senior project</small></div><PanelLeftClose size={16} aria-hidden="true" /></div></div>
-    </aside>
-    <div className="main-column"><header className="topbar"><div className="breadcrumb"><button className="mobile-menu icon-button" aria-label="Open navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><Menu size={21} /></button><span className="breadcrumb-parent">Workspace</span><ChevronRight size={14} /><span>{currentLabel}</span></div><div className="source-status"><span className="status-dot" /><span>Sample data</span><span className="source-divider" /><span className="source-caption">No live connection</span></div></header>
-      <main id="main-content" tabIndex={-1}><Routes><Route path="*" element={<WorkspacePage />} /></Routes></main>
-      <footer><span>OpsLens <span className="footer-separator">/</span> Purchasing intelligence, explained.</span><span className="footer-right"><ArrowDownToLine size={13} /> Frontend preview · Stage 2</span></footer>
+  const previousPath = useRef(pathname)
+  const modal = mobile && menuOpen
+  const currentLabel =
+    navigation.find((item) => item.to === pathname)?.label ??
+    (pathname.startsWith('/items/')
+      ? 'Item detail'
+      : pathname === '/ui'
+        ? 'Interface preview'
+        : 'Page not found')
+
+  useEffect(() => {
+    const media = window.matchMedia?.('(max-width: 700px)')
+    const update = () => {
+      setMobile(media?.matches ?? false)
+      if (!media?.matches) setMenuOpen(false)
+    }
+    media?.addEventListener('change', update)
+    return () => media?.removeEventListener('change', update)
+  }, [])
+  useEffect(() => {
+    document.title = `${currentLabel} · OpsLens`
+    if (previousPath.current !== pathname) main.current?.focus()
+    previousPath.current = pathname
+  }, [pathname, currentLabel])
+  useEffect(() => {
+    if (!modal) {
+      if (restoreMenuFocus.current) {
+        menuButton.current?.focus()
+        restoreMenuFocus.current = false
+      }
+      return
+    }
+    closeButton.current?.focus()
+    const oldOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        restoreMenuFocus.current = true
+        setMenuOpen(false)
+        return
+      }
+      if (event.key !== 'Tab') return
+      const focusable = [
+        ...(sidebar.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not(:disabled), select',
+        ) ?? []),
+      ]
+      const first = focusable[0],
+        last = focusable.at(-1)
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last?.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first?.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = oldOverflow
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [modal])
+  const closeMenu = () => {
+    restoreMenuFocus.current = true
+    setMenuOpen(false)
+  }
+  return (
+    <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
+      {modal && (
+        <button
+          tabIndex={-1}
+          className="sidebar-backdrop"
+          aria-label="Close navigation overlay"
+          onClick={closeMenu}
+        />
+      )}
+      <aside
+        ref={sidebar}
+        id="workspace-navigation"
+        className={`sidebar ${menuOpen ? 'is-open' : ''}`}
+        role={modal ? 'dialog' : undefined}
+        aria-modal={modal || undefined}
+        aria-label="Workspace navigation"
+      >
+        <Link to="/" className="brand" onClick={() => setMenuOpen(false)}>
+          <span className="brand-mark">
+            <Boxes size={23} />
+          </span>
+          OpsLens<span className="brand-period">.</span>
+        </Link>
+        <button
+          ref={closeButton}
+          className="mobile-close icon-button"
+          aria-label="Close navigation"
+          onClick={closeMenu}
+        >
+          <X size={20} />
+        </button>
+        <div className="workspace-switch">
+          <span className="workspace-avatar">ND</span>
+          <div>
+            Northstar Distribution<small>Sample purchasing workspace</small>
+          </div>
+        </div>
+        <div className="nav-heading">WORKSPACE</div>
+        <nav aria-label="Main navigation">
+          {navigation.map((item) => (
+            <NavLink
+              end={item.to === '/'}
+              to={item.to}
+              key={item.to}
+              onClick={() => setMenuOpen(false)}
+            >
+              <item.icon size={18} />
+              <span>{item.label}</span>
+              <ChevronRight className="nav-chevron" size={14} />
+            </NavLink>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="sample-note">
+            <span className="sample-note-icon">
+              <Database size={18} />
+            </span>
+            <h3>A safe place to explore</h3>
+            <p>This workspace uses sample data. Your live inventory is never affected.</p>
+            <span className="sample-pill">Sample data</span>
+          </div>
+          <ThemeControl />
+          <div className="profile">
+            <span className="profile-avatar">BY</span>
+            <div>
+              Buyer workspace<small>OpsLens · Senior project</small>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div className="main-column" inert={modal || undefined}>
+        <header className="topbar">
+          <div className="breadcrumb">
+            <button
+              ref={menuButton}
+              className="mobile-menu icon-button"
+              aria-label="Open navigation"
+              aria-expanded={menuOpen}
+              aria-controls="workspace-navigation"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              <Menu size={21} />
+            </button>
+            <span className="breadcrumb-parent">Workspace</span>
+            <ChevronRight size={14} />
+            <span>{currentLabel}</span>
+          </div>
+          <SourceStatus />
+        </header>
+        <main ref={main} id="main-content" tabIndex={-1}>
+          <Suspense fallback={<LoadingState label="Opening this screen" />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/recommendations" element={<Recommendations />} />
+              <Route path="/items/:id" element={<ItemDetail />} />
+              <Route path="/evaluation" element={<Evaluation />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/ui" element={<InterfacePreview />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </main>
+        <footer>
+          <span>
+            OpsLens <span className="footer-separator">/</span> Purchasing intelligence, explained.
+          </span>
+          <span>Sample data · Frontend prototype</span>
+        </footer>
+      </div>
     </div>
-  </div>
+  )
 }

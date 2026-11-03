@@ -9,12 +9,27 @@ export interface Supplier {
   leadTimeDays: number
   leadTimeStdDevDays: number
 }
-export interface DemandPoint { date: string; units: number }
-export interface ForecastPoint { date: string; p10: number; p50: number; p90: number }
+export interface DemandPoint {
+  date: string
+  units: number
+}
+export interface ForecastPoint {
+  date: string
+  p10: number
+  p50: number
+  p90: number
+}
 export interface Forecast {
   itemId: string
   daily: ForecastPoint[]
-  leadTime: { days: number; expected: number; p10: number; p50: number; p90: number; standardDeviation: number }
+  leadTime: {
+    days: number
+    expected: number
+    p10: number
+    p50: number
+    p90: number
+    standardDeviation: number
+  }
   method: 'sample-heuristic'
 }
 export interface StockPosition {
@@ -64,8 +79,16 @@ export interface ItemDetail {
   forecast: Forecast
   recommendation: Recommendation
 }
-export interface ItemFilters { search?: string; supplierId?: string; state?: StockState }
-export interface RecommendationFilters { search?: string; supplierId?: string; urgency?: Urgency }
+export interface ItemFilters {
+  search?: string
+  supplierId?: string
+  state?: StockState
+}
+export interface RecommendationFilters {
+  search?: string
+  supplierId?: string
+  urgency?: Urgency
+}
 export interface RecommendationRow {
   item: Item
   supplier: Supplier
@@ -87,7 +110,12 @@ export interface BacktestResults {
   itemCount: number
   dayCount: number
   results: BacktestResult[]
-  definitions: { stockoutDays: string; inventoryCost: string; serviceLevel: string; forecastRangeCoverage: string }
+  definitions: {
+    stockoutDays: string
+    inventoryCost: string
+    serviceLevel: string
+    forecastRangeCoverage: string
+  }
   note: string
 }
 export interface DataSourceStatus {
@@ -98,4 +126,8 @@ export interface DataSourceStatus {
   itemCount: number
   readOnly: true
 }
-export interface ConnectionTestResult { success: boolean; message: string; simulated: true }
+export interface ConnectionTestResult {
+  success: boolean
+  message: string
+  simulated: true
+}

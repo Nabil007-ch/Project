@@ -14,16 +14,16 @@ VITE_API_BASE_URL=https://your-service.example/api
 
 `VITE_` variables are public browser configuration; never put credentials in them. The backend must implement the following JSON contract and enable CORS for the frontend origin when hosted separately. HTTP requests time out after 15 seconds. There is no backend in this project, so only the HTTP adapter itself has been tested with mocked fetch responses.
 
-| Client method | Request | JSON response |
-| --- | --- | --- |
-| getItems | GET /items?search=&supplierId=&state= | Item[] |
-| getSuppliers | GET /suppliers | Supplier[] |
-| getRecommendations | GET /recommendations?search=&supplierId=&urgency= | RecommendationRow[] |
-| getItemDetail | GET /items/:id | ItemDetail |
-| updateServiceLevel | PATCH /items/:id/service-level, body `{ "serviceLevel": 99 }` | Updated ItemDetail |
-| getBacktestResults | GET /evaluation | BacktestResults |
-| getDataSourceStatus | GET /data-source | DataSourceStatus |
-| testConnection | POST /data-source/test | ConnectionTestResult |
+| Client method       | Request                                                       | JSON response        |
+| ------------------- | ------------------------------------------------------------- | -------------------- |
+| getItems            | GET /items?search=&supplierId=&state=                         | Item[]               |
+| getSuppliers        | GET /suppliers                                                | Supplier[]           |
+| getRecommendations  | GET /recommendations?search=&supplierId=&urgency=             | RecommendationRow[]  |
+| getItemDetail       | GET /items/:id                                                | ItemDetail           |
+| updateServiceLevel  | PATCH /items/:id/service-level, body `{ "serviceLevel": 99 }` | Updated ItemDetail   |
+| getBacktestResults  | GET /evaluation                                               | BacktestResults      |
+| getDataSourceStatus | GET /data-source                                              | DataSourceStatus     |
+| testConnection      | POST /data-source/test                                        | ConnectionTestResult |
 
 These are the stage 2 **sample-data** response types. When live or CSV integration is implemented, extend the source discriminator and forecast method types together with the backend. The current types deliberately make no claim to live data or trained model results. Responses are TypeScript contracts, not runtime schema validation; the future backend must return conforming JSON.
 
@@ -33,12 +33,12 @@ These are the stage 2 **sample-data** response types. When live or CSV integrati
 - Supplier lead time and standard deviation are days. Annual holding rate `0.22` means 22% of unit cost per year.
 - Service targets are cycle-service percentages: 90, 95, 98, 99. Backtest service is a unit fill rate (also 0–100), which is a different measure; the response carries definitions.
 - `getRecommendations` includes all 60 items, including zero-quantity recommendations (`urgency: none`), for filtering and comparison.
-- Sample target changes last for the client session and reset on refresh. They do not alter the stock snapshot or historical evaluation. Query mutations refresh item/recommendation lists and update the detail cache.
+- Sample target changes last for the client session and reset on refresh. They do not alter the stock snapshot or historical evaluation. Query mutations optimistically update the detail cache, restore the previous detail on failure, and refresh item/recommendation lists after success. The preview calculation stays inside the API/query layer; screen components do not import mock logic.
 - Empty queries return `[]`; unknown IDs raise `ApiError` 404. Unsupported service levels raise 400. Simulated interruptions raise 503. `ApiError` exposes a safe message, status, and code.
 
 ## Recommendation policy
 
-`mock/recommendation.ts` contains the shared pure sample policy:
+`src/lib/recommendation.ts` contains the shared pure sample policy (also re-exported by `mock/recommendation.ts`):
 
 1. Expected demand = daily sample mean proxy × average supplier lead time.
 2. Lead-time demand variance = lead days × daily demand variance + daily mean² × lead-time standard deviation².

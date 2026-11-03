@@ -1,25 +1,70 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
-  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   font-synthesis: none;
   font-variant-numeric: tabular-nums;
   color-scheme: light;
-  --bg: #f6f8fa; --surface: #ffffff; --surface-soft: #f5f7f8;
-  --text: #202e38; --muted: #60717c; --faint: #70808a; --border: #e2e8eb;
-  --accent: #18766a; --accent-soft: #eaf4f0; --accent-text: #126153;
-  --hero: #edf5f1; --hero-border: #d9e8e1;
-  --risk: #b13738; --healthy: #18766a; --overstock: #91651b;
-  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
-  --radius-sm: 6px; --radius: 10px; --radius-lg: 14px;
+  --bg: #f6f8fa;
+  --surface: #ffffff;
+  --surface-soft: #f5f7f8;
+  --text: #202e38;
+  --muted: #60717c;
+  --faint: #70808a;
+  --border: #e2e8eb;
+  --accent: #18766a;
+  --accent-soft: #eaf4f0;
+  --accent-text: #126153;
+  --hero: #edf5f1;
+  --hero-border: #d9e8e1;
+  --on-accent: #ffffff;
+  --risk-soft: #fceff0;
+  --overstock-soft: #faf2e4;
+  --risk: #b13738;
+  --healthy: #18766a;
+  --overstock: #91651b;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
   --shadow: 0 2px 4px rgb(25 45 40 / 3%);
-  --text-xs: .6875rem; --text-sm: .8125rem; --text-base: .875rem; --text-lg: 1.125rem; --text-title: 1.875rem;
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-lg: 1.125rem;
+  --text-title: 1.875rem;
 }
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #121a20; --surface: #19242b; --surface-soft: #202c34;
-  --text: #e5ecef; --muted: #abbac3; --faint: #9babb5; --border: #30414b;
-  --accent: #78cbb5; --accent-soft: #233f37; --accent-text: #9bdfca;
-  --hero: #1c332d; --hero-border: #345347;
-  --risk: #f6a0a0; --healthy: #78cbb5; --overstock: #e8c283;
+  --bg: #121a20;
+  --surface: #19242b;
+  --surface-soft: #202c34;
+  --text: #e5ecef;
+  --muted: #abbac3;
+  --faint: #9babb5;
+  --border: #30414b;
+  --accent: #78cbb5;
+  --accent-soft: #233f37;
+  --accent-text: #9bdfca;
+  --hero: #1c332d;
+  --hero-border: #345347;
+  --on-accent: #122c24;
+  --risk-soft: #412a30;
+  --overstock-soft: #3c3425;
+  --risk: #f6a0a0;
+  --healthy: #78cbb5;
+  --overstock: #e8c283;
 }
